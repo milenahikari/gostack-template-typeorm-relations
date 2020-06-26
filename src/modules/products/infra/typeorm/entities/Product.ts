@@ -14,16 +14,24 @@ class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({
+    unique: true,
+    nullable: false,
+  })
   name: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: false,
+  })
   price: number;
 
-  @Column('int')
+  @Column('integer')
   quantity: number;
 
-  @OneToMany(type => OrdersProducts, orders_products => orders_products.product)
+  @OneToMany(() => OrdersProducts, ordersProducts => ordersProducts.product)
   order_products: OrdersProducts[];
 
   @CreateDateColumn()

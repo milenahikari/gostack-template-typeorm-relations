@@ -85,6 +85,6 @@
 ## TO DO
 [ X ] Criar migrations
 [ X ] Criar entidades e relacionar
-[   ] Criar rota para salvar o usuário
-[   ] Criar rota para salvar o produto
+[ X ] Criar rota para salvar o usuário
+[ X ] Criar rota para salvar o produto
 [   ] Criar rota para salvar o pedido e itens do pedido
