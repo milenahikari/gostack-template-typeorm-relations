@@ -32,35 +32,38 @@ class CreateOrderService {
   ) { }
 
   public async execute({ customer_id, products }: IRequest): Promise<Order> {
+    //VERIFICO SE O COMPRADOR EXISTE
     const customer = await this.customersRepository.findById(customer_id);
-
     if (!customer) {
       throw new AppError('Customer not found');
     }
 
+    //SEPARO OS IDS DOS PRODUTOS
     const productIds = products.map(product => ({
       id: product.id,
     }));
 
+    //VERIFICO SE TODOS OS PRODUTOS DA ORDER EXISTEM
     const findProducts = await this.productsRepository.findAllById(productIds);
-
     if (!findProducts || products.length !== findProducts.length) {
       throw new AppError('Some product not found');
     }
 
     let updatedProducts: IUpdateProductsQuantityDTO[] = [];
 
+    //FORMATO OS PRODUTOS DE ACORDO COM O ESPERADO NA INTERFACE
     const parsedProducts = findProducts.map(findProduct => {
       const findProductById = products.find(product => product.id === findProduct.id);
 
+      //VERIFICO SE O PRODUTO POSSUI ESTOQUE DISPONIVEL
       if (findProductById && findProductById.quantity > findProduct.quantity) {
         throw new AppError('Product not available');
       }
 
       if (findProductById) {
         updatedProducts.push({
-          id: findProduct.id,
-          quantity: findProduct.quantity - findProductById.quantity
+          id: findProductById.id,
+          quantity: findProductById.quantity
         })
       }
 
@@ -71,11 +74,11 @@ class CreateOrderService {
       };
     });
 
+
     const createOrder = await this.ordersRepository.create({
       customer,
       products: parsedProducts,
     });
-
 
     await this.productsRepository.updateQuantity(updatedProducts);
 

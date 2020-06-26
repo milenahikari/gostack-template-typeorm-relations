@@ -4,6 +4,7 @@ import IProductsRepository from '@modules/products/repositories/IProductsReposit
 import ICreateProductDTO from '@modules/products/dtos/ICreateProductDTO';
 import IUpdateProductsQuantityDTO from '@modules/products/dtos/IUpdateProductsQuantityDTO';
 import Product from '../entities/Product';
+import AppError from '@shared/errors/AppError';
 
 interface IFindProducts {
   id: string;
@@ -56,21 +57,21 @@ class ProductsRepository implements IProductsRepository {
 
   public async updateQuantity(
     products: IUpdateProductsQuantityDTO[],
-  ): Promise<void> {
-    products.forEach(async product => {
-      const updatedProduct = await this.ormRepository.findOne({
-        where: {
-          id: product.id
-        }
-      });
+  ): Promise<Product[]> {
+    const productsIds = products.map(product => ({
+      id: product.id
+    }));
 
-      if (updatedProduct) {
-        updatedProduct.quantity = product.quantity;
+    const findProducts = await this.findAllById(productsIds);
 
-        await this.ormRepository.save(updatedProduct);
-      }
+    const updatedProducts = findProducts.map(product => ({
+      ...product,
+      quantity: product.quantity - (products.find(({ id }) => id === product.id)?.quantity || 0)
+    }));
 
-    });
+    await this.ormRepository.save(updatedProducts);
+
+    return updatedProducts;
   }
 }
 
